@@ -20,17 +20,18 @@ class School(SchoolBase):
 
 
 class StudentBase(BaseModel):
-    email: EmailStr
+    email: Optional[str] = None
     first_name: str
     last_name: str
     student_number: Optional[str] = None
     grade_level: Optional[int] = None
+    username: Optional[str] = None
 
 
 class Student(StudentBase):
     id: uuid.UUID
     school_id: uuid.UUID
-    supabase_user_id: uuid.UUID
+    supabase_user_id: Optional[uuid.UUID] = None
     created_at: datetime
     updated_at: datetime
     
@@ -43,9 +44,10 @@ class StudentProfile(Student):
 
 
 class TeacherBase(BaseModel):
-    email: EmailStr
+    email: Optional[str] = None
     first_name: str
     last_name: str
+    username: Optional[str] = None
 
 
 class Teacher(TeacherBase):
