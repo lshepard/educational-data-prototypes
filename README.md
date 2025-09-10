@@ -1,5 +1,15 @@
 # Prototype System Overview
 
+## Problem
+
+With emerging technologies in AI changing so rapidly, we want to allow rapid experimentation in a real educational environment. New tools
+like Vercel and Lovable allow for very fast iteration and prototyping; however, these tools are not well suited for managing data privacy,
+permissions, reliability, and authentication.
+
+For an organization that may want to move very quickly to test different ideas in real classrooms, they need infrastructure to support it.
+One way to support this is to use a secure service for the data storage, expose it via a hardened API, and then build lightweight apps on
+top of those services.
+
 ## Goals
 
 We want to enable **rapid prototyping of educational products** in a school-based environment, while ensuring fundamental **data security** and **compliance**.  
@@ -21,10 +31,9 @@ This system is designed to:
 
 2. **Long-lived secure service**  
    - Provides the **underlying data layer** (schools, classes, students, and related records).  
-   - Includes a **skeleton CRUD app** to browse and manage data.  
    - Handles **authentication/authorization**.  
      - Initially via **Supabase Auth**.  
-     - Later can expand to support SSO (Google, Microsoft, etc.).
+     - Later can expand to support SSO from educational sources such as Google Classroom, Clever, or use EdLink to connect to a variety of LMS and SIS vendors.
 
 3. **Independent prototype systems**  
    - Each prototype (a classroom assistant, grading dashboard, interactive tool, etc.) can be built however teams prefer:
@@ -36,6 +45,36 @@ This system is designed to:
 ---
 
 ## Proposed Architecture
+
+In this repository, we illustrate an example of such an architecture that splits the data from the prototyped frontend. This supports:
+
+```mermaid
+graph TD
+    subgraph "Secure Backend Service"
+        API[API Service]
+        DB[(Supabase DB)]
+        Auth[Supabase Auth]
+        API --> DB
+        API --> Auth
+    end
+
+    subgraph "Frontend Prototypes"
+        V[Vercel App]
+        L[Lovable App]
+        O[Other Prototypes...]
+    end
+
+    V --> API
+    L --> API
+    O --> API
+
+    style API fill:#a8d1ff
+    style DB fill:#b8e6bf
+    style Auth fill:#ffd7a8
+    style V fill:#ffb3ba
+    style L fill:#baffc9
+    style O fill:#ffffba
+```
 
 ### Long-Lived Secure Service
 - Stable service exposing a clean API (REST/OpenAPI).  
@@ -80,6 +119,33 @@ The demonstration system will consist of **three components**:
 - Add auditing, rate-limits, and monitoring for production readiness.  
 
 ---
+
+## Student Sample Data
+
+This project includes a light set of sample data appropriate for playing with a few apps to illustrate the concept. You can use this student, Maya Chen:
+
+  🎓 Maya Chen's Complete Profile
+
+  Login Credentials:
+  - Email: student3@demo.test
+  - Password: demo123456
+
+  Academic Profile:
+  - Grade: 4th (enrolled in both 3rd and 5th grade classes)
+  - Math Strengths (A's & B's): 6 assignments with excellent performance
+  - Reading Challenges (C's & D's): 4 assignments showing difficulties
+
+  📊 Sample Data Summary
+
+  Students:
+  1. Emma Wilson (3rd grade) - student1@demo.test
+  2. Ethan Garcia (5th grade) - student2@demo.test
+  3. Maya Chen (4th grade, both classes) - student3@demo.test
+
+  Teachers:
+  1. Maria Garcia (3rd grade) - teacher1@demo.test
+  2. James Thompson (5th grade) - teacher2@demo.test
+
 
 ## Summary
 
