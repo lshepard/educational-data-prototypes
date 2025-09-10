@@ -21,14 +21,29 @@ app = FastAPI(
 )
 
 # CORS middleware for frontend apps
+def custom_cors_origin_handler(origin: str) -> bool:
+    """Allow specific origins including all vusercontent.net subdomains"""
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    
+    # Check exact matches
+    if origin in allowed_origins:
+        return True
+    
+    # Check wildcards
+    if (origin and 
+        (origin.endswith(".vercel.app") or 
+         origin.endswith(".railway.app") or
+         origin.endswith(".vusercontent.net"))):
+        return True
+        
+    return False
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000", 
-        "https://*.vercel.app",
-        "https://*.railway.app",  # Railway domains
-        "https://*.vusercontent.net"  # v0.dev preview domains
-    ],  
+    allow_origin_regex=r"https://.*\.vusercontent\.net|https://.*\.vercel\.app|https://.*\.railway\.app|http://localhost:3000|http://127\.0\.0\.1:3000",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
