@@ -14,7 +14,7 @@ load_dotenv()
 # Supabase configuration
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
-JWT_SECRET_KEY = os.getenv("SUPABASE_JWT_SECRET")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 security = HTTPBearer()
@@ -33,7 +33,7 @@ def verify_token(token: str) -> dict:
             token, 
             JWT_SECRET_KEY, 
             algorithms=["HS256"],
-            options={"verify_signature": True, "verify_exp": True}
+            options={"verify_signature": True, "verify_exp": True, "verify_aud": False}
         )
         return payload
     except JWTError as e:
