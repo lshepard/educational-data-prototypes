@@ -26,7 +26,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", 
         "https://*.vercel.app",
-        "https://*.railway.app"  # Add Railway domains
+        "https://*.railway.app",  # Railway domains
+        "https://*.vusercontent.net"  # v0.dev preview domains
     ],  
     allow_credentials=True,
     allow_methods=["*"],
