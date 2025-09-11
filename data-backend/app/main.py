@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from .database import get_db
@@ -49,12 +51,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Mount CRUDAdmin - disabled due to async connection issues
 # app.include_router(admin.router, prefix="/admin")
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
+    """Serve the public landing page"""
+    with open("static/index.html", "r") as f:
+        return HTMLResponse(content=f.read(), status_code=200)
+
+
+@app.get("/api")
+async def api_info():
+    """API information endpoint"""
     return {
         "message": "Educational Data Backend API", 
         "version": "1.0.0",
