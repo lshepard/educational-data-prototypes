@@ -130,6 +130,32 @@ def require_student_access():
     return get_current_student
 
 
+async def get_current_student_or_teacher(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> dict:
+    """Get current user (student or teacher) - teachers can access student data"""
+    current_user = await get_current_user(credentials, db)
+    
+    if current_user["role"] == "teacher":
+        # Teachers can access any student data, return teacher info
+        return current_user
+    elif current_user["role"] == "student":
+        # For students, get their student record
+        student = await get_current_student(credentials, db)
+        return {
+            "user_id": current_user["user_id"],
+            "email": current_user["email"],
+            "role": current_user["role"],
+            "student": student
+        }
+    else:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. Must be a student or teacher"
+        )
+
+
 def require_admin_access():
     """Dependency to ensure user has admin privileges (future implementation)"""
     # For now, just return current user - expand later for admin roles

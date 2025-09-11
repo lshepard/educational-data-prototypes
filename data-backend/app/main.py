@@ -16,7 +16,7 @@ from .schemas import (
     StudentAppDataUpdate,
     StudentAppDataResponse
 )
-from .auth import get_current_student, get_current_user
+from .auth import get_current_student, get_current_user, get_current_student_or_teacher
 from typing import Optional
 import uuid as uuid_lib
 # from .admin import admin  # CRUDAdmin having async connection issues - disable for now
@@ -212,13 +212,39 @@ async def test_auth(current_user: dict = Depends(get_current_user)):
 @app.post("/student/app-data", response_model=StudentAppDataResponse)
 async def store_app_data(
     app_data: StudentAppDataCreate,
-    current_student: Student = Depends(get_current_student),
+    current_user: dict = Depends(get_current_student_or_teacher),
     db: Session = Depends(get_db)
 ):
-    """Store or update app data for the authenticated student"""
+    """Store or update app data for the authenticated student or teacher"""
+    
+    # Determine the student_id to use
+    if current_user["role"] == "student":
+        student_id = current_user["student"].id
+    else:  # teacher
+        # For teachers, create or find a special "teacher student" record
+        teacher_email = current_user["email"]
+        teacher_student = db.query(Student).filter(Student.email == teacher_email).first()
+        
+        if not teacher_student:
+            # Create a special student record for this teacher
+            teacher_student = Student(
+                school_id="00000000-0000-4000-8000-000000000001",  # Default school
+                supabase_user_id=current_user["user_id"],
+                email=teacher_email,
+                first_name="Teacher",
+                last_name="Account",
+                student_number=f"TEACHER-{current_user['user_id'][:8]}",
+                grade_level=99  # Special grade level for teachers
+            )
+            db.add(teacher_student)
+            db.commit()
+            db.refresh(teacher_student)
+        
+        student_id = teacher_student.id
+    
     # Check if data already exists
     existing_data = db.query(StudentAppData).filter(
-        StudentAppData.student_id == current_student.id,
+        StudentAppData.student_id == student_id,
         StudentAppData.app_key == app_data.app_key,
         StudentAppData.data_key == app_data.data_key
     ).first()
@@ -238,7 +264,7 @@ async def store_app_data(
     else:
         # Create new data
         db_app_data = StudentAppData(
-            student_id=current_student.id,
+            student_id=student_id,
             app_key=app_data.app_key,
             data_key=app_data.data_key,
             data_value=app_data.data_value
@@ -258,12 +284,23 @@ async def store_app_data(
 @app.get("/student/app-data/{app_key}", response_model=List[StudentAppDataResponse])
 async def get_app_data_by_app(
     app_key: str,
-    current_student: Student = Depends(get_current_student),
+    current_user: dict = Depends(get_current_student_or_teacher),
     db: Session = Depends(get_db)
 ):
-    """Get all data for a specific app for the authenticated student"""
+    """Get all data for a specific app for the authenticated student or teacher"""
+    
+    # Determine the student_id to use
+    if current_user["role"] == "student":
+        student_id = current_user["student"].id
+    else:  # teacher
+        teacher_email = current_user["email"]
+        teacher_student = db.query(Student).filter(Student.email == teacher_email).first()
+        if not teacher_student:
+            return []  # No data if no teacher record exists yet
+        student_id = teacher_student.id
+    
     app_data = db.query(StudentAppData).filter(
-        StudentAppData.student_id == current_student.id,
+        StudentAppData.student_id == student_id,
         StudentAppData.app_key == app_key
     ).all()
     
@@ -282,12 +319,23 @@ async def get_app_data_by_app(
 async def get_specific_app_data(
     app_key: str,
     data_key: str,
-    current_student: Student = Depends(get_current_student),
+    current_user: dict = Depends(get_current_student_or_teacher),
     db: Session = Depends(get_db)
 ):
-    """Get specific data for an app and key for the authenticated student"""
+    """Get specific data for an app and key for the authenticated student or teacher"""
+    
+    # Determine the student_id to use
+    if current_user["role"] == "student":
+        student_id = current_user["student"].id
+    else:  # teacher
+        teacher_email = current_user["email"]
+        teacher_student = db.query(Student).filter(Student.email == teacher_email).first()
+        if not teacher_student:
+            raise HTTPException(status_code=404, detail="App data not found")
+        student_id = teacher_student.id
+    
     app_data = db.query(StudentAppData).filter(
-        StudentAppData.student_id == current_student.id,
+        StudentAppData.student_id == student_id,
         StudentAppData.app_key == app_key,
         StudentAppData.data_key == data_key
     ).first()
