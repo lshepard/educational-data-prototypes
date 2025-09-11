@@ -273,13 +273,19 @@
                 <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-                Architecture Overview
+                What problem are we solving?
             </h2>
             <p>
-                This FastAPI backend demonstrates a secure, FERPA-compliant architecture for educational technology prototypes. 
-                Built with privacy-first principles and comprehensive authentication, it provides a robust foundation 
-                for developing innovative educational applications that safely leverage student academic data 
-                to deliver personalized learning experiences and actionable insights for educators.
+                We want to allow rapid experimentation in a real educational environment. New tools like Vercel and Lovable allow for very fast iteration and prototyping; however, these tools are not well suited for managing data privacy, permissions, reliability, and authentication.
+
+                For an organization that may want to move very quickly to test different ideas in real classrooms, they need infrastructure to support it. One way to support this is to use a secure service for the data storage, expose it via a hardened API, and then build lightweight apps on top of those services.
+                </p><p>
+                <h3>Goals</h3>
+                We want to enable rapid prototyping of educational products in a school-based environment, while ensuring fundamental data security and compliance.
+                This service shows a mechanism for providing this support.
+
+                To use a prototype service like Lovable or Vercel, tell it what to ubild - and then copy/paste [the markdown file describing the architecture](https://github.com/lshepard/educational-data-prototypes/blob/main/data-backend/API_INTEGRATION.md)
+                from Github. Provide the public environment variables to support and they are ready to go.
             </p>
         </div>
 
@@ -328,8 +334,8 @@
                         <h3>Classroom Reflector</h3>
                         <p>
                             A collaborative platform where teachers can pose thoughtful questions and students 
-                            respond with personalized feedback tailored to their academic level. Promotes critical 
-                            thinking and meaningful classroom discussions through data-driven insights.
+                            respond with personalized feedback tailored to their academic level. Writing feedback is powered 
+                            by the OpenAI API.
                         </p>
                         <div style="margin-bottom: 1rem; font-size: 0.875rem; color: #6b7280;">
                             <strong>Built on:</strong> Lovable
