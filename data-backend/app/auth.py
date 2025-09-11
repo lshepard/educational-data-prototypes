@@ -60,10 +60,16 @@ async def get_current_user(
             detail="Invalid token payload"
         )
     
+    # Extract role from user_metadata or app_metadata
+    user_metadata = payload.get("user_metadata", {})
+    app_metadata = payload.get("app_metadata", {})
+    
+    role = user_metadata.get("role") or app_metadata.get("role") or "student"
+    
     return {
         "user_id": user_id,
         "email": payload.get("email"),
-        "role": payload.get("role", "student")
+        "role": role
     }
 
 
