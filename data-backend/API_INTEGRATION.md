@@ -468,8 +468,9 @@ const chatHistory = await chatResponse.json();
 The API allows requests from:
 - `http://localhost:3000` (local development)
 - `https://*.vercel.app` (Vercel deployments)
+- `https://*.vusercontent.net` (Vercel user content)
 - `https://*.railway.app` (Railway deployments)
-- `https://*.vusercontent.net` (Claude Artifacts)
+- `https://*.sandbox.lovable.dev` (Lovable AI platform)
 
 ## Interactive Documentation
 Visit `/docs` endpoint for full OpenAPI/Swagger documentation with request/response examples and testing interface.
