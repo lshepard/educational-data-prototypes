@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 from typing import Optional
 from .database import get_db
-from .models import Student
+from .models import Student, Teacher
 from sqlalchemy.orm import Session
 
 load_dotenv()

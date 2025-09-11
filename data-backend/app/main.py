@@ -17,6 +17,8 @@ from .schemas import (
     StudentAppDataResponse
 )
 from .auth import get_current_student, get_current_user
+from typing import Optional
+import uuid as uuid_lib
 # from .admin import admin  # CRUDAdmin having async connection issues - disable for now
 
 app = FastAPI(
@@ -378,6 +380,128 @@ async def delete_app_data_by_app(
     db.commit()
     
     return {"message": f"Deleted {app_data_count} app data records"}
+
+
+# Cross-user app data endpoints (for teachers accessing student data)
+@app.post("/app-data/{student_id}", response_model=StudentAppDataResponse)
+async def store_student_app_data(
+    student_id: str,
+    app_data: StudentAppDataCreate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Store or update app data for any student (teachers can access student data)"""
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Check if data already exists
+    existing_data = db.query(StudentAppData).filter(
+        StudentAppData.student_id == student_id,
+        StudentAppData.app_key == app_data.app_key,
+        StudentAppData.data_key == app_data.data_key
+    ).first()
+    
+    if existing_data:
+        # Update existing data
+        existing_data.data_value = app_data.data_value
+        db.commit()
+        db.refresh(existing_data)
+        return StudentAppDataResponse(
+            app_key=existing_data.app_key,
+            data_key=existing_data.data_key,
+            data_value=existing_data.data_value,
+            created_at=existing_data.created_at,
+            updated_at=existing_data.updated_at
+        )
+    else:
+        # Create new data
+        db_app_data = StudentAppData(
+            student_id=student_id,
+            app_key=app_data.app_key,
+            data_key=app_data.data_key,
+            data_value=app_data.data_value
+        )
+        db.add(db_app_data)
+        db.commit()
+        db.refresh(db_app_data)
+        return StudentAppDataResponse(
+            app_key=db_app_data.app_key,
+            data_key=db_app_data.data_key,
+            data_value=db_app_data.data_value,
+            created_at=db_app_data.created_at,
+            updated_at=db_app_data.updated_at
+        )
+
+
+@app.get("/app-data/{student_id}/{app_key}", response_model=List[StudentAppDataResponse])
+async def get_student_app_data_by_app(
+    student_id: str,
+    app_key: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all app data for a specific student and app (teachers can access student data)"""
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    app_data = db.query(StudentAppData).filter(
+        StudentAppData.student_id == student_id,
+        StudentAppData.app_key == app_key
+    ).all()
+    
+    return [
+        StudentAppDataResponse(
+            app_key=data.app_key,
+            data_key=data.data_key,
+            data_value=data.data_value,
+            created_at=data.created_at,
+            updated_at=data.updated_at
+        ) for data in app_data
+    ]
+
+
+@app.get("/app-data/{student_id}/{app_key}/{data_key}", response_model=StudentAppDataResponse)
+async def get_specific_student_app_data(
+    student_id: str,
+    app_key: str,
+    data_key: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get specific app data for any student (teachers can access student data)"""
+    app_data = db.query(StudentAppData).filter(
+        StudentAppData.student_id == student_id,
+        StudentAppData.app_key == app_key,
+        StudentAppData.data_key == data_key
+    ).first()
+    
+    if not app_data:
+        raise HTTPException(status_code=404, detail="App data not found")
+    
+    return StudentAppDataResponse(
+        app_key=app_data.app_key,
+        data_key=app_data.data_key,
+        data_value=app_data.data_value,
+        created_at=app_data.created_at,
+        updated_at=app_data.updated_at
+    )
+
+
+@app.get("/students", response_model=List[StudentProfile])
+async def get_all_students(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all students (for teachers to see their students)"""
+    students = db.query(Student).options(
+        joinedload(Student.school)
+    ).all()
+    
+    return students
 
 
 if __name__ == "__main__":
