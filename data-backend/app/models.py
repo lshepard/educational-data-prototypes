@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, DateTime, Text, DECIMAL, ForeignKey, Boolean
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -39,6 +39,7 @@ class Student(Base):
     school = relationship("School", back_populates="students")
     enrollments = relationship("Enrollment", back_populates="student")
     submissions = relationship("Submission", back_populates="student")
+    app_data = relationship("StudentAppData", back_populates="student")
 
 
 class Teacher(Base):
@@ -125,3 +126,18 @@ class Submission(Base):
     # Relationships
     student = relationship("Student", back_populates="submissions")
     assignment = relationship("Assignment", back_populates="submissions")
+
+
+class StudentAppData(Base):
+    __tablename__ = "student_app_data"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    student_id = Column(UUID(as_uuid=True), ForeignKey("students.id"), nullable=False)
+    app_key = Column(String(100), nullable=False)
+    data_key = Column(String(200), nullable=False)
+    data_value = Column(JSONB, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    student = relationship("Student", back_populates="app_data")

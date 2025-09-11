@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Any, Dict
 from datetime import datetime
 from decimal import Decimal
 import uuid
@@ -149,3 +149,36 @@ class StudentDashboard(BaseModel):
     enrolled_classes: List[EnrollmentWithClass]
     recent_assignments: List[AssignmentWithClass]
     recent_submissions: List[SubmissionWithAssignment]
+
+
+# Student App Data schemas
+class StudentAppDataBase(BaseModel):
+    app_key: str
+    data_key: str
+    data_value: Dict[str, Any]
+
+
+class StudentAppDataCreate(StudentAppDataBase):
+    pass
+
+
+class StudentAppDataUpdate(BaseModel):
+    data_value: Dict[str, Any]
+
+
+class StudentAppData(StudentAppDataBase):
+    id: uuid.UUID
+    student_id: uuid.UUID
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class StudentAppDataResponse(BaseModel):
+    app_key: str
+    data_key: str 
+    data_value: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
