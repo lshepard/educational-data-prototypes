@@ -470,7 +470,8 @@ The API allows requests from:
 - `https://*.vercel.app` (Vercel deployments)
 - `https://*.vusercontent.net` (Vercel user content)
 - `https://*.railway.app` (Railway deployments)
-- `https://*.sandbox.lovable.dev` (Lovable AI platform)
+- `https://*.sandbox.lovable.dev` (Lovable AI sandbox)
+- `https://*.lovable.app` (Lovable AI apps)
 
 ## Interactive Documentation
 Visit `/docs` endpoint for full OpenAPI/Swagger documentation with request/response examples and testing interface.
